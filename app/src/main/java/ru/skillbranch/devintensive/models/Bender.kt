@@ -26,14 +26,12 @@ class Bender(var status: Status = Status.NORMAL, var question: Question = Questi
     fun listenAnswer(answer: String): Pair<String, Triple<Int, Int, Int>> {
         if (question.question == Question.IDLE.question)
             return "Отлично - ты справился\nНа этом все, вопросов больше нет" to status.color
-        Log.d("M_Bender", "First letter is lower case......${answer.contains("[\\d{7}]")}")
-        Log.d("M_Bender", "answer is....${answer}....validate .... ${validateQuestion(answer)}...AND contains ${question.answer.contains(answer.toLowerCase(Locale.ROOT))}")
         return if (question.answer.contains(answer.toLowerCase(Locale.ROOT)) && validateQuestion(answer)) {
             question = question.nextQuestion()
             "Отлично - ты справился\n${question.question}" to status.color
         } else {
             status = status.nextStatus()
-            "It's wrong! ${question.question}" to status.color
+            "Это неправильный ответ\\n${question.question}" to status.color
         }
     }
 
