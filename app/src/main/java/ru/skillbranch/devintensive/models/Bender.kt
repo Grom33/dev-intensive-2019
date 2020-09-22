@@ -4,6 +4,8 @@ import java.util.*
 
 class Bender(var status: Status = Status.NORMAL, var question: Question = Question.NAME) {
 
+    private var wrongAnswerCounter = 1
+
     fun askQuestion(): String = when (question) {
         Question.NAME -> Question.NAME.question
         Question.PROFESSION -> Question.PROFESSION.question
@@ -33,8 +35,16 @@ class Bender(var status: Status = Status.NORMAL, var question: Question = Questi
                 question = question.nextQuestion()
                 warn = "Отлично - ты справился"
             } else {
-                status = status.nextStatus()
-                warn = "Это неправильный ответ"
+                if (wrongAnswerCounter < 3) {
+                    status = status.nextStatus()
+                    warn = "Это неправильный ответ"
+                    wrongAnswerCounter++
+                } else {
+                    status = Status.NORMAL
+                    question = Question.NAME
+                    wrongAnswerCounter = 1
+                    warn = "Это неправильный ответ. Давай все по новой"
+                }
             }
         } else warn = message
 
