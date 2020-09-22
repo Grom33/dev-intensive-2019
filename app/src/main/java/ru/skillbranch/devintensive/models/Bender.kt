@@ -1,6 +1,5 @@
 package ru.skillbranch.devintensive.models
 
-import android.util.Log
 import java.util.*
 
 class Bender(var status: Status = Status.NORMAL, var question: Question = Question.NAME) {
@@ -14,25 +13,32 @@ class Bender(var status: Status = Status.NORMAL, var question: Question = Questi
         Question.IDLE -> Question.IDLE.question
     }
 
-    private fun validateQuestion(input: String): Boolean = when (question) {
-        Question.NAME -> !input[0].isLowerCase()
-        Question.PROFESSION -> input[0].isLowerCase()
-        Question.MATERIAL -> !input.contains("[\\d]")
-        Question.BDAY -> !input.contains("[a-zA-Z]")
-        Question.SERIAL -> !input.contains("[a-zA-Z]") && input.length == 7
-        Question.IDLE -> true
+    private fun validateQuestion(input: String): Pair<Boolean, String> = when (question) {
+        Question.NAME -> !input[0].isLowerCase() to "Имя должно начинаться с заглавной буквы"
+        Question.PROFESSION -> input[0].isLowerCase() to "Профессия должна начинаться со строчной буквы"
+        Question.MATERIAL -> !input.contains("\\d".toRegex()) to "Материал не должен содержать цифр"
+        Question.BDAY -> !input.contains("[a-zA-Z]".toRegex()) to "Год моего рождения должен содержать только цифры"
+        Question.SERIAL -> (!input.contains("[a-zA-Z]".toRegex()) && input.length == 7) to "Серийный номер содержит только цифры, и их 7"
+        Question.IDLE -> true to ""
     }
 
     fun listenAnswer(answer: String): Pair<String, Triple<Int, Int, Int>> {
+        val (isValid, message) = validateQuestion(answer)
+        var warn: String
         if (question.question == Question.IDLE.question)
             return "Отлично - ты справился\nНа этом все, вопросов больше нет" to status.color
-        return if (question.answer.contains(answer.toLowerCase(Locale.ROOT)) && validateQuestion(answer)) {
-            question = question.nextQuestion()
-            "Отлично - ты справился\n${question.question}" to status.color
-        } else {
-            status = status.nextStatus()
-            "Это неправильный ответ\\n${question.question}" to status.color
-        }
+
+        if (isValid) {
+            if (question.answer.contains(answer.toLowerCase(Locale.ROOT))) {
+                question = question.nextQuestion()
+                warn = "Отлично - ты справился"
+            } else {
+                status = status.nextStatus()
+                warn = "Это неправильный ответ"
+            }
+        } else warn = message
+
+        return "${warn}\n${question.question}" to status.color
     }
 
     enum class Status(val color: Triple<Int, Int, Int>) {
